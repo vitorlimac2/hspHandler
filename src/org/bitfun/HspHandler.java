@@ -31,7 +31,7 @@ public class HspHandler {
         options.addOption("h", "help", false, "Show help.");
 
         options.addOption("i",true,"Blastn output file sorted by query name, sequence name, strand, " +
-                "query alignment start and query alignment end ( E.g.: sort -k1,1 -k2,2 -k7,7 -k3,3n -k4,4n) and it must be formatted using the parameter: \n" +
+                "query alignment start and query alignment end ( E.g.: sort -k1,1 -k5,5 -k8,8 -k3,3n -k4,4n) and it must be formatted using the parameter: \n" +
                 "-outfmt \"6 qseqid qlen qstart qend sacc sstart send sstrand evalue bitscore mismatch gaps qseq sseq btop\"");
 
         options.addOption("c",false,"Group full alignments and calculate the coverage by query sequence. " +
@@ -167,6 +167,8 @@ public class HspHandler {
 
     private static void chainHsp(BufferedReader br) throws IOException {
 
+        log.log(Level.INFO, "Chaining filtered HSPs...");
+
         List<Hsp> hspList = new ArrayList<>();
 
         for(String line; (line = br.readLine()) != null; ) {
@@ -185,9 +187,13 @@ public class HspHandler {
             hspList = selectBestHsp2(hspList, hsp);
         }
         printBestChain(hspList);
+
+        log.log(Level.INFO, "Finished.");
     }
 
     private static void filter(BufferedReader br) throws IOException {
+
+        log.log(Level.INFO, "Filtering...");
 
         List<Hsp> hspList = new ArrayList<>();
 
@@ -207,6 +213,8 @@ public class HspHandler {
             hspList = selectBestHsp2(hspList, hsp);
         }
             printHsp(hspList);
+
+        log.log(Level.INFO, "Finished.");
     }
 
     private static void printBestChain(List<Hsp> listHsp){
@@ -523,6 +531,8 @@ public class HspHandler {
 
     private static void calculateErrorStatistics(BufferedReader br) throws IOException {
 
+        log.log(Level.INFO, "Finding mismatch/indels...");
+
         for(String line; (line = br.readLine()) != null; ) {
             // process the line.
             String [] splittedHsp = line.split("\t");
@@ -531,6 +541,8 @@ public class HspHandler {
             printDelPositions(hsp);
             printInsertionPositions(hsp);
         }
+
+        log.log(Level.INFO, "Finished.");
     }
 
     private static void printMismatchPositions(Hsp h){
