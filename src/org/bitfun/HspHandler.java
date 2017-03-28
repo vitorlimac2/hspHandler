@@ -1,5 +1,6 @@
 package org.bitfun;
 
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -30,8 +31,7 @@ public class HspHandler {
 
         options.addOption("h", "help", false, "Show help.");
 
-        options.addOption("i",true,"Blastn output file sorted by query name, sequence name, strand, " +
-                "query alignment start and query alignment end ( E.g.: sort -k1,1 -k5,5 -k8,8 -k3,3n -k4,4n) and it must be formatted using the parameter: \n" +
+        options.addOption("i",true,"Blastn output file sorted by query name and it must be formatted using the parameter: \n" +
                 "-outfmt \"6 qseqid qlen qstart qend sacc sstart send sstrand evalue bitscore mismatch gaps qseq sseq btop\"");
 
         options.addOption("c",false,"Group full alignments and calculate the coverage by query sequence. " +
@@ -328,7 +328,7 @@ public class HspHandler {
 
         List<Hsp> hitAuxList = new ArrayList<>();
 
-        for(Hsp h: l) {
+        for(org.bitfun.Hsp h: l) {
             // has overlapping
 
             // has overlapping
@@ -511,7 +511,7 @@ public class HspHandler {
         hsp.setSid(splittedHsp[4]);
         hsp.setSstart(Integer.parseInt(splittedHsp[5]));
         hsp.setSend(Integer.parseInt(splittedHsp[6]));
-        hsp.setSstrand(splittedHsp[7].charAt(0));
+        hsp.setSstrand(splittedHsp[7].equals("plus")?'+':'-');
         hsp.setEvalue(Float.parseFloat(splittedHsp[8]));
         hsp.setScore(Float.parseFloat(splittedHsp[9]));
         hsp.setMismatch(Integer.parseInt(splittedHsp[10]));
