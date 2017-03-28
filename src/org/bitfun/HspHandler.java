@@ -31,8 +31,11 @@ public class HspHandler {
 
         options.addOption("h", "help", false, "Show help.");
 
-        options.addOption("i",true,"Blastn output file sorted by query name and it must be formatted using the parameter: \n" +
-                "-outfmt \"6 qseqid qlen qstart qend sacc sstart send sstrand evalue bitscore mismatch gaps qseq sseq btop\"");
+        options.addOption("i",true,"Blastn output file sorted by query name and it must be: \n " +
+                "* Formatted using the Blastn format option: \n" +
+                "\t\t -outfmt \"6 qseqid qlen qstart qend sacc sstart send sstrand evalue bitscore mismatch gaps qseq sseq btop\" \n" +
+                "* Sorted by qseqid, sacc, sstart, send and sstrand: \n" +
+                "\t\t sort -k1,1 -k5,5 -k6,6n -k7,7n -k8,8 <arg>");
 
         options.addOption("c",false,"Group full alignments and calculate the coverage by query sequence. " +
                 "The file must be filtered by HSP Handler.");
