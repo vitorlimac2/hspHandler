@@ -24,6 +24,7 @@ public class HspHandler {
     private static boolean isFilter = false;
     private static boolean isChain = false;
     private static int intronDistance = 10000;
+    private static boolean isBestChainCoverage = false;
 
 
     private HspHandler(String[] args){
@@ -51,6 +52,9 @@ public class HspHandler {
         options.addOption("stats", false, "Calculate mismatch and insertion/deletion statistics.");
         options.addOption("filter",false, "Remove redundant HSP for the same query, sequence and strand.");
         options.addOption("chain", false, "Chaining and select the best HSP set for each query sequence.");
+
+        options.addOption("bestCov", false, "Print the HSP set (chain) with the best query coverage." +
+                "Used with -chain option. (Default: HSP set with the best total score).");
 
 
         System.err.println("HSP Handler v1.0\nAuthor: Vitor Coelho (vitorlimac2@gmail.com)");
@@ -91,14 +95,6 @@ public class HspHandler {
                 help();
             }
 
-            if(cmd.hasOption("filter")){
-                isFilter = true;
-            }
-
-            if(cmd.hasOption("c")){
-                isCoverage = true;
-            }
-
             if(cmd.hasOption("o")){
                 overlap = Float.parseFloat(cmd.getOptionValue("o"));
             }
@@ -107,6 +103,10 @@ public class HspHandler {
             }
             if(cmd.hasOption("d")){
                 intronDistance = Integer.parseInt(cmd.getOptionValue("d"));
+            }
+
+            if(cmd.hasOption("bestCov")){
+                isBestChainCoverage = true;
             }
 
 
@@ -155,7 +155,10 @@ public class HspHandler {
             }else if(isCoverage) {
                 reduceRedundanceByRead(br);
             }else if(isChain){
-                chainHsp(br);
+                if(isBestChainCoverage)
+                    chainHspCov(br);
+                else
+                    chainHsp(br);
             }else if(isStats){
                 calculateErrorStatistics(br);
             }
@@ -168,9 +171,35 @@ public class HspHandler {
 
     }
 
+    private static void chainHspCov(BufferedReader br) throws IOException {
+
+        log.log(Level.INFO, "Chaining filtered HSPs with the best query coverage...");
+
+        List<Hsp> hspList = new ArrayList<>();
+
+        for(String line; (line = br.readLine()) != null; ) {
+            // process the line.
+
+            String [] splittedHsp = line.split("\t");
+            String readID = splittedHsp[0];
+            Hsp hsp = parseHsp(splittedHsp);
+
+            if(hspList!=null && hspList.size()!=0){
+                if(!hspList.get(0).getQid().equals(readID)){
+                    printChainWithBestCoverage(hspList);
+                    hspList.clear();
+                }
+            }
+            hspList = selectBestHsp2(hspList, hsp);
+        }
+        printChainWithBestCoverage(hspList);
+
+        log.log(Level.INFO, "Finished.");
+    }
+
     private static void chainHsp(BufferedReader br) throws IOException {
 
-        log.log(Level.INFO, "Chaining filtered HSPs...");
+        log.log(Level.INFO, "Chaining filtered HSPs with the best total score...");
 
         List<Hsp> hspList = new ArrayList<>();
 
@@ -252,6 +281,49 @@ public class HspHandler {
            }
        }
        printHsp(chainMap.get(bestHspKey));
+
+    }
+
+    private static void printChainWithBestCoverage(List<Hsp> listHsp){
+        Collections.sort(listHsp, new HspListComparator());
+
+        Map<String, List<Hsp>> chainMap = new HashMap<>();
+
+        if(listHsp==null||listHsp.size()==0)
+            return;
+
+        int queryLength = listHsp.get(0).getLength();
+
+
+        for(Hsp hsp: listHsp){
+            String key = hsp.getSid()+hsp.getStrand();
+            if(chainMap.containsKey(key)){
+                chainMap.get(key).add(hsp);
+            }else{
+                List<Hsp> l = new ArrayList<>();
+                l.add(hsp);
+                chainMap.put(key,l);
+            }
+        }
+        String bestHspKey = "";
+        int bestCoverage = 0;
+
+        for(Map.Entry<String, List<Hsp>> element: chainMap.entrySet()){
+
+            int sumCoverage = 0;
+
+            for(Hsp hsp: element.getValue()){
+                sumCoverage+= hsp.getQend() - hsp.getQstart() + 1;
+            }
+
+            sumCoverage = sumCoverage > queryLength?queryLength:sumCoverage;
+
+            if(sumCoverage > bestCoverage){
+                bestHspKey = element.getKey();
+                bestCoverage = sumCoverage;
+            }
+        }
+        printHsp(chainMap.get(bestHspKey));
 
     }
 
