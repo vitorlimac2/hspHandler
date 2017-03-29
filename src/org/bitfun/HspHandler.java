@@ -1,14 +1,14 @@
 package org.bitfun;
 
 
+import org.apache.commons.cli.*;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.cli.*;
 
 
 public class HspHandler {
@@ -665,6 +665,8 @@ public class HspHandler {
 
             if(isMismatch) {
                 printError(h.getQid(),
+                        h.getSid(),
+                        h.getStrand(),
                         h.getLength(),
                         h.getQstart(),
                         h.getSstart(),
@@ -732,7 +734,10 @@ public class HspHandler {
 
             if(lenght_del>0 && endDeletionExtension){
 
-                printError(h.getQid(), h.getLength(),
+                printError(h.getQid(),
+                        h.getSid(),
+                        h.getStrand(),
+                        h.getLength(),
                         h.getQstart(),
                         h.getSstart(),
                         (h.getQstart() + start_del - 1),
@@ -797,9 +802,18 @@ public class HspHandler {
 
             if(length_ins>0 && endInsertionExtension){
 
-                printError(h.getQid(), h.getLength(),h.getQstart(), h.getSstart(),
-                        (h.getQstart() + start_ins), (h.getSstart() + start_ins_seq - 1),
-                        insertion_seq,"*",h.getBtop(),qseq,sseq);
+                printError(h.getQid(),
+                        h.getSid(),
+                        h.getStrand(),
+                        h.getLength(),
+                        h.getQstart(),
+                        h.getSstart(),
+                        (h.getQstart() + start_ins),
+                        (h.getSstart() + start_ins_seq - 1),
+                        insertion_seq,
+                        "*",
+                        h.getBtop(),
+                        qseq,sseq);
                 length_ins = 0;
                 endInsertionExtension = true;
                 insertion_seq = "";
@@ -807,7 +821,7 @@ public class HspHandler {
         }
     }
 
-    private static void printError(String qId, int length,
+    private static void printError(String qId, String sID, char sstrand, int length,
                                    int qStart, int sStart,
                                    int qStartError, int sStartError,
                                    String ref, String error,
@@ -815,6 +829,8 @@ public class HspHandler {
                                    String sSeq){
 
         System.out.println(qId + "\t" +
+                sID + "\t" +
+                sstrand + "\t" +
                 length + "\t" +
                 qStart + "\t" +
                 sStart + "\t" +
